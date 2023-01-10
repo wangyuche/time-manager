@@ -2,7 +2,10 @@
 
 ```mermaid
 sequenceDiagram
-Cmd->>Server: Modify Time Zone
 Client->>Server: Connect
-Server->>Client: Push Time Zone
+Client->>Server: Get Server Time offset and acceleration rate
+Cmd->>Server: Set Time offset or acceleration rate
+Server->>Client: Push Time offset or acceleration rate
+Cmd->>Server: Get Server Time offset and acceleration rate
+Cmd->>Server: Clear Server Time offset and acceleration rate
 ```

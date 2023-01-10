@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package timemanager;
+option go_package = "github.com/wangyuche/time-manager/proto/timemanager";
+
+message GetServerTimeRes {
+    int32 offset = 1; 
+    int32 accrate = 2; 
+}
+
+message SetServerTimeReq {
+    int32 offset = 1; 
+    int32 accrate = 2; 
+}
+
+enum TimeStatus{
+    success=0;
+    fail=1;
+}
+
+message SetServerTimeRes {
+    TimeStatus status = 1; 
+}
+
+message ClearServerTimeRes {
+    TimeStatus status = 1; 
+}
+
+service TimeGRPC {
+    rpc GetServerTime(google.protobuf.Empty) returns (GetServerTimeRes) {};
+    rpc SetServerTime(SetServerTimeReq) returns (SetServerTimeRes){};
+    rpc ClearServerTime(google.protobuf.Empty) returns (ClearServerTimeRes){};
+}
+
+
+
