@@ -2,7 +2,10 @@ module github.com/wangyuche/time-manager/server
 
 go 1.18
 
-require google.golang.org/grpc v1.52.0
+require (
+	github.com/wangyuche/time-manager/proto/timemanager v0.0.0-00010101000000-000000000000
+	google.golang.org/grpc v1.52.0
+)
 
 require (
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -12,3 +15,5 @@ require (
 	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )
+
+replace github.com/wangyuche/time-manager/proto/timemanager => ../proto/timemanager
