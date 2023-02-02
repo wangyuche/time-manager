@@ -32,6 +32,7 @@ service TimeGRPC {
     rpc GetServerTime(google.protobuf.Empty) returns (GetServerTimeRes) {};
     rpc SetServerTime(SetServerTimeReq) returns (SetServerTimeRes){};
     rpc ClearServerTime(google.protobuf.Empty) returns (ClearServerTimeRes){};
+    rpc BroadcastServerTime(google.protobuf.Empty) returns (stream GetServerTimeRes){};
 }
 
 

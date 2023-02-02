@@ -26,6 +26,7 @@ type TimeGRPCClient interface {
 	GetServerTime(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetServerTimeRes, error)
 	SetServerTime(ctx context.Context, in *SetServerTimeReq, opts ...grpc.CallOption) (*SetServerTimeRes, error)
 	ClearServerTime(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ClearServerTimeRes, error)
+	BroadcastServerTime(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (TimeGRPC_BroadcastServerTimeClient, error)
 }
 
 type timeGRPCClient struct {
@@ -63,6 +64,38 @@ func (c *timeGRPCClient) ClearServerTime(ctx context.Context, in *emptypb.Empty,
 	return out, nil
 }
 
+func (c *timeGRPCClient) BroadcastServerTime(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (TimeGRPC_BroadcastServerTimeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TimeGRPC_ServiceDesc.Streams[0], "/timemanager.TimeGRPC/BroadcastServerTime", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &timeGRPCBroadcastServerTimeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TimeGRPC_BroadcastServerTimeClient interface {
+	Recv() (*GetServerTimeRes, error)
+	grpc.ClientStream
+}
+
+type timeGRPCBroadcastServerTimeClient struct {
+	grpc.ClientStream
+}
+
+func (x *timeGRPCBroadcastServerTimeClient) Recv() (*GetServerTimeRes, error) {
+	m := new(GetServerTimeRes)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // TimeGRPCServer is the server API for TimeGRPC service.
 // All implementations must embed UnimplementedTimeGRPCServer
 // for forward compatibility
@@ -70,6 +103,7 @@ type TimeGRPCServer interface {
 	GetServerTime(context.Context, *emptypb.Empty) (*GetServerTimeRes, error)
 	SetServerTime(context.Context, *SetServerTimeReq) (*SetServerTimeRes, error)
 	ClearServerTime(context.Context, *emptypb.Empty) (*ClearServerTimeRes, error)
+	BroadcastServerTime(*emptypb.Empty, TimeGRPC_BroadcastServerTimeServer) error
 	mustEmbedUnimplementedTimeGRPCServer()
 }
 
@@ -85,6 +119,9 @@ func (UnimplementedTimeGRPCServer) SetServerTime(context.Context, *SetServerTime
 }
 func (UnimplementedTimeGRPCServer) ClearServerTime(context.Context, *emptypb.Empty) (*ClearServerTimeRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClearServerTime not implemented")
+}
+func (UnimplementedTimeGRPCServer) BroadcastServerTime(*emptypb.Empty, TimeGRPC_BroadcastServerTimeServer) error {
+	return status.Errorf(codes.Unimplemented, "method BroadcastServerTime not implemented")
 }
 func (UnimplementedTimeGRPCServer) mustEmbedUnimplementedTimeGRPCServer() {}
 
@@ -153,6 +190,27 @@ func _TimeGRPC_ClearServerTime_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TimeGRPC_BroadcastServerTime_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TimeGRPCServer).BroadcastServerTime(m, &timeGRPCBroadcastServerTimeServer{stream})
+}
+
+type TimeGRPC_BroadcastServerTimeServer interface {
+	Send(*GetServerTimeRes) error
+	grpc.ServerStream
+}
+
+type timeGRPCBroadcastServerTimeServer struct {
+	grpc.ServerStream
+}
+
+func (x *timeGRPCBroadcastServerTimeServer) Send(m *GetServerTimeRes) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // TimeGRPC_ServiceDesc is the grpc.ServiceDesc for TimeGRPC service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -173,6 +231,12 @@ var TimeGRPC_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TimeGRPC_ClearServerTime_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "BroadcastServerTime",
+			Handler:       _TimeGRPC_BroadcastServerTime_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "timemanager/timemanager.proto",
 }
