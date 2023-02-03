@@ -20,6 +20,7 @@ var accrate int32
 func init() {
 	RootCmd.AddCommand(gettimeCmd)
 	RootCmd.AddCommand(settimeCmd)
+	RootCmd.AddCommand(cleartimeCmd)
 	gettimeCmd.Flags().StringVarP(&url, "url", "u", "localhost:9000", "Time Manager URL")
 	settimeCmd.Flags().StringVarP(&url, "url", "u", "localhost:9000", "Time Manager URL")
 	settimeCmd.Flags().Int32VarP(&offset, "offset", "o", 0, "Time offset sec")
@@ -60,12 +61,29 @@ var settimeCmd = &cobra.Command{
 	Use:   "set",
 	Short: "Set Server Time",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("set-time")
 		conn, t := Connect(url)
 		defer conn.Close()
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 		r, err := t.SetServerTime(ctx, &tm.SetServerTimeReq{Offset: offset, Accrate: accrate})
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		if r.GetStatus() != tm.TimeStatus_success {
+			log.Fatalf("Statu Code: %v", r.GetStatus())
+		}
+	},
+}
+
+var cleartimeCmd = &cobra.Command{
+	Use:   "clear",
+	Short: "Clear Server Time",
+	Run: func(cmd *cobra.Command, args []string) {
+		conn, t := Connect(url)
+		defer conn.Close()
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		r, err := t.ClearServerTime(ctx, &emptypb.Empty{})
 		if err != nil {
 			log.Fatalf("Error: %v", err)
 		}
