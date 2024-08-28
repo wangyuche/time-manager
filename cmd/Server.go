@@ -1,15 +1,30 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
+	tm "github.com/wangyuche/time-manager/proto/timemanager"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
+
+var url string
+var offset int32
+var accrate int32
 
 func init() {
 	RootCmd.AddCommand(gettimeCmd)
 	RootCmd.AddCommand(settimeCmd)
+	RootCmd.AddCommand(cleartimeCmd)
+	gettimeCmd.Flags().StringVarP(&url, "url", "u", "localhost:9000", "Time Manager URL")
+	settimeCmd.Flags().StringVarP(&url, "url", "u", "localhost:9000", "Time Manager URL")
+	settimeCmd.Flags().Int32VarP(&offset, "offset", "o", 0, "Time offset sec")
+	settimeCmd.Flags().Int32VarP(&accrate, "accrate", "a", 0, "Time accrate")
 }
 
 func main() {
@@ -26,19 +41,66 @@ var RootCmd = &cobra.Command{
 }
 
 var gettimeCmd = &cobra.Command{
-	Use:   "get-time",
-	Short: "get time server's time",
-	Long:  `get time server's time`,
+	Use:   "get",
+	Short: "Get Server Time",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("get-time")
+		conn, t := Connect(url)
+		defer conn.Close()
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		r, err := t.GetServerTime(ctx, &emptypb.Empty{})
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		if r.Timeunix != 0 {
+			t := time.Now().Unix() - r.Timeunix
+			log.Print(time.Now().Unix() + int64(r.Offset) + (t * int64(r.Accrate)))
+		} else {
+			log.Print(time.Now().Unix())
+		}
 	},
 }
 
 var settimeCmd = &cobra.Command{
-	Use:   "set-time",
-	Short: "set time server's time",
-	Long:  `set time server's time`,
+	Use:   "set",
+	Short: "Set Server Time",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("set-time")
+		conn, t := Connect(url)
+		defer conn.Close()
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		r, err := t.SetServerTime(ctx, &tm.SetServerTimeReq{Offset: offset, Accrate: accrate})
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		if r.GetStatus() != tm.TimeStatus_success {
+			log.Fatalf("Statu Code: %v", r.GetStatus())
+		}
 	},
+}
+
+var cleartimeCmd = &cobra.Command{
+	Use:   "clear",
+	Short: "Clear Server Time",
+	Run: func(cmd *cobra.Command, args []string) {
+		conn, t := Connect(url)
+		defer conn.Close()
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		r, err := t.ClearServerTime(ctx, &emptypb.Empty{})
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		if r.GetStatus() != tm.TimeStatus_success {
+			log.Fatalf("Statu Code: %v", r.GetStatus())
+		}
+	},
+}
+
+func Connect(address string) (*grpc.ClientConn, tm.TimeGRPCClient) {
+	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	return conn, tm.NewTimeGRPCClient(conn)
 }

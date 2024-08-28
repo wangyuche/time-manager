@@ -1,4 +1,4 @@
-module github.com/wangyuche/time-manager/serve
+module github.com/wangyuche/time-manager/client
 
 go 1.21.4
 

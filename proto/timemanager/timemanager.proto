@@ -6,8 +6,9 @@ package timemanager;
 option go_package = "github.com/wangyuche/time-manager/proto/timemanager";
 
 message GetServerTimeRes {
-    int32 offset = 1; 
-    int32 accrate = 2; 
+    int64 timeunix = 1; 
+    int32 offset = 2; 
+    int32 accrate = 3; 
 }
 
 message SetServerTimeReq {
@@ -32,6 +33,7 @@ service TimeGRPC {
     rpc GetServerTime(google.protobuf.Empty) returns (GetServerTimeRes) {};
     rpc SetServerTime(SetServerTimeReq) returns (SetServerTimeRes){};
     rpc ClearServerTime(google.protobuf.Empty) returns (ClearServerTimeRes){};
+    rpc BroadcastServerTime(google.protobuf.Empty) returns (stream GetServerTimeRes){};
 }
 
 
