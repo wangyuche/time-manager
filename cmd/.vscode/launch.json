@@ -5,33 +5,32 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch",
+            "name": "set",
             "type": "go",
             "request": "launch",
-            "mode": "debug",
-            "remotePath": "",
-            "port": 2345,
-            "host": "127.0.0.1",
-            "program": "${workspaceFolder}",
+            "mode": "auto",
+            "program": "${workspaceFolder}/Server.go",
             "env": {},
-            /*
             "args": [
                 "",
                 "set",
                 "-o",
-                3000,
+                "10",
                 "-a",
-                5
-            ],
-            */
-            
+                "20"
+            ]
+        },
+        {
+            "name": "get",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/Server.go",
+            "env": {},
             "args": [
                 "",
-                "clear"
-            ],
-            
-            "showLog": true,
-            "debugAdapter": "legacy"
-        }
+                "get"
+            ]
+        },
     ]
 }

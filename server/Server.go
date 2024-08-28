@@ -82,5 +82,4 @@ func (s *TimeGRPC) BroadcastServerTime(void *emptypb.Empty, stream tm.TimeGRPC_B
 			return err
 		}
 	}
-	return nil
 }

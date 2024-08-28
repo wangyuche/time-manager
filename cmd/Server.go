@@ -52,8 +52,12 @@ var gettimeCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Error: %v", err)
 		}
-		log.Print(r.Accrate)
-		log.Print(r.Offset)
+		if r.Timeunix != 0 {
+			t := time.Now().Unix() - r.Timeunix
+			log.Print(time.Now().Unix() + int64(r.Offset) + (t * int64(r.Accrate)))
+		} else {
+			log.Print(time.Now().Unix())
+		}
 	},
 }
 
