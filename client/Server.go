@@ -68,10 +68,18 @@ func Shutdown() {
 	conn.Close()
 }
 
-func GetUnix() int64 {
+func Unix() int64 {
 	if cachetime != 0 {
 		t := time.Now().Unix() - cachetime
 		return time.Now().Unix() + int64(offset) + (t * int64(accrate))
 	}
 	return time.Now().Unix()
+}
+
+func Now() time.Time {
+	if cachetime != 0 {
+		t := time.Now().Unix() - cachetime
+		return time.Unix(time.Now().Unix()+int64(offset)+(t*int64(accrate)), 0)
+	}
+	return time.Now()
 }
